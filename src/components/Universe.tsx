@@ -15,7 +15,7 @@ export default function Universe(){
    const {default:ForceGraph3D}=await import("3d-force-graph");
    if(disposed||!mount.current)return;
    const el=mount.current;
-   instance=ForceGraph3D({controlType:"orbit"})(el);
+   instance=new ForceGraph3D(el,{controlType:"orbit"});
    graph.current=instance;
    instance.graphData({nodes:concepts.map(c=>({...c})),links:edges.map(e=>({...e}))})
     .backgroundColor("#070d1b").nodeColor((n:any)=>colors[n.domain as Domain])
@@ -47,7 +47,7 @@ export default function Universe(){
  function reset(){setActive(null);graph.current?.nodeColor((n:any)=>colors[n.domain as Domain]);graph.current?.cameraPosition({x:0,y:0,z:330},{x:0,y:0,z:0},1100)}
  return <div className="shell">
   <div className="starfield" aria-hidden="true"/>
-  <header className="topbar"><button className="brand" onClick={reset}><span className="brand-icon">✧</span> Engineering <strong>Universe</strong></button><span className="header-note">Explore how technology connects</span><a className="github" href="https://github.com/ksrilal/engineering-universe" target="_blank" rel="noreferrer">GitHub ↗</a></header>
+  <header className="topbar"><button className="brand" onClick={reset}><span className="brand-icon">✧</span> Engineering <strong>Universe</strong></button><nav className="eu-home-nav" aria-label="Explore platform"><a href="/explore">Concepts</a><a href="/simulations">Simulations</a><a href="/learn">Learning paths</a></nav><a className="github" href="https://github.com/ksrilal/engineering-universe" target="_blank" rel="noreferrer">GitHub ↗</a></header>
   <section className="hero"><div className="eyebrow">INTERACTIVE ENGINEERING KNOWLEDGE GRAPH</div><h1>Everything is <em>connected.</em></h1><p>Explore networking, security, software, cloud and DevOps in one living universe.</p>
    <div className="search-wrap"><span className="search-icon">⌕</span><input aria-label="Search engineering concepts" placeholder="Search TCP, OAuth, Kubernetes, streaming..." value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&matches[0])focus(matches[0]);if(e.key==="Escape")setQuery("")}}/><kbd>↵</kbd>
    {matches.length>0&&<div className="suggestions">{matches.map(c=><button key={c.id} onClick={()=>focus(c)}><span className="dot" style={{background:colors[c.domain]}}/>{c.name}<small>{c.domain}</small></button>)}</div>}</div>
