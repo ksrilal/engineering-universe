@@ -1,5 +1,6 @@
 "use client";
 import {useEffect,useMemo,useRef,useState} from "react";
+import Link from "next/link";
 import type {PerspectiveCamera,Scene,WebGLRenderer,Mesh,Group,Line,Sprite,CanvasTexture} from "three";
 import {concepts,colors,edges,Concept,Domain} from "../data/concepts";
 
@@ -133,6 +134,8 @@ export default function Universe(){
  },[]);
  function focusConcept(c:Concept){setActive(c);setQuery("");controller.current?.focus(c.id)}
  function reset(){setActive(null);controller.current?.reset()}
+ const httpConceptIds=new Set(["http","https","http-1-1","http-2","http-3","tcp","tls","quic"]);
+ const showHttpLab=!!active&&httpConceptIds.has(active.id);
  return <div className="shell">
   <div className="starfield" aria-hidden="true"/>
   <header className="topbar"><button className="brand" onClick={reset}><span className="brand-icon">✧</span> Engineering <strong>Universe</strong></button><nav className="eu-home-nav" aria-label="Explore platform"><a href="/explore">Concepts</a><a href="/simulations">Simulations</a><a href="/learn">Learning paths</a></nav><a className="github" href="https://github.com/ksrilal/engineering-universe" target="_blank" rel="noreferrer">GitHub ↗</a></header>
@@ -144,6 +147,6 @@ export default function Universe(){
   {!ready&&<div className="loading">Loading knowledge universe…</div>}
   <div className="legend">{Object.entries(colors).map(([name,color])=><span key={name}><i style={{background:color}}/>{name}</span>)}</div>
   <div className="hint">Drag to rotate · Scroll to zoom · Click a node to explore</div>
-  {active&&<aside className="detail"><button className="close" aria-label="Close concept details" onClick={reset}>×</button><span className="tag" style={{color:colors[active.domain]}}>{active.domain}</span><h2>{active.name}</h2><p>{active.description}</p><h3>Connected concepts</h3><div className="related">{concepts.filter(c=>active.links.includes(c.id)||c.links.includes(active.id)).map(c=><button key={c.id} onClick={()=>focusConcept(c)}>{c.name} ↗</button>)}</div><div className="coming"><a href="/simulations/http-request">▶ Launch 3D HTTP request simulation →</a><p><a href={`/concepts/${active.id}`}>Browse concept catalogue →</a></p></div></aside>}
+  {active&&<aside className="detail"><button className="close" aria-label="Close concept details" onClick={reset}>×</button><span className="tag" style={{color:colors[active.domain]}}>{active.domain}</span><h2>{active.name}</h2><p>{active.description}</p><h3>Connected concepts</h3><div className="related">{concepts.filter(c=>active.links.includes(c.id)||c.links.includes(active.id)).map(c=><button key={c.id} onClick={()=>focusConcept(c)}>{c.name} ↗</button>)}</div><div className="coming eu-detail-actions">{showHttpLab&&<Link className="eu-action-link eu-action-primary" href="/simulations/http-request"><span className="eu-action-icon">▶</span><span><strong>Explore HTTP request</strong><small>Interactive 3D simulation</small></span><span aria-hidden="true">↗</span></Link>}<Link className="eu-action-link eu-action-secondary" href={`/concepts/${active.id}`}><span className="eu-action-icon">▤</span><span><strong>Learn {active.name}</strong><small>Concept details &amp; connections</small></span><span aria-hidden="true">→</span></Link><Link className="eu-action-link eu-action-quiet" href="/simulations">Browse all simulations →</Link></div></aside>}
  </div>;
 }
