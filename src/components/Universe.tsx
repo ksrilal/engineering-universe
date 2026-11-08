@@ -71,12 +71,10 @@ export default function Universe(){
     .linkOpacity(0.55)
     .linkWidth(0.45)
     .cooldownTicks(0)
-    .enableNodeDrag(false)
     .onNodeClick((n:any)=>focus(n as Concept,instance))
     .showNavInfo(false);
    instance.width(el.clientWidth).height(el.clientHeight);
    instance.cameraPosition({x:0,y:0,z:420},{x:0,y:0,z:0},0);
-   instance.controls().enableDamping=true;
    graph.current.__labelTextures=labelTextures;
    setReady(true);
   })();
