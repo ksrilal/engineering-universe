@@ -17,15 +17,28 @@ export default function Universe(){
    const el=mount.current;
    instance=new ForceGraph3D(el,{controlType:"orbit"});
    graph.current=instance;
-   instance.graphData({nodes:concepts.map(c=>({...c})),links:edges.map(e=>({...e}))})
-    .backgroundColor("#070d1b").nodeColor((n:any)=>colors[n.domain as Domain])
-    .nodeVal((n:any)=>n.id==="https"?11:5)
+   // Give every node a distinct starting position so the first rendered frame
+   // does not appear as one giant overlapping sphere.
+   const nodes=concepts.map((c,i)=>{
+    const y=1-2*(i+0.5)/concepts.length;
+    const radius=Math.sqrt(1-y*y);
+    const angle=i*Math.PI*(3-Math.sqrt(5));
+    return {...c,x:115*radius*Math.cos(angle),y:115*y,z:115*radius*Math.sin(angle)};
+   });
+   instance.graphData({nodes,links:edges.map(e=>({...e}))})
+    .backgroundColor("#070d1b")
+    .nodeRelSize(3)
+    .nodeResolution(10)
+    .nodeColor((n:any)=>colors[n.domain as Domain])
+    .nodeVal((n:any)=>n.id==="https"?1.8:1)
     .nodeLabel((n:any)=>n.name)
     .linkColor(()=>"rgba(107,142,194,0.22)")
-    .linkOpacity(0.42).linkWidth(0.55)
+    .linkOpacity(0.42).linkWidth(0.6)
+    .warmupTicks(80).cooldownTicks(250)
+    .onEngineStop(()=>{if(!disposed&&!graph.current?.__fitted){graph.current.__fitted=true;instance.zoomToFit(850,85)}})
     .onNodeClick((n:any)=>focus(n as Concept,instance))
     .showNavInfo(false);
-   instance.cameraPosition({x:0,y:0,z:330});
+   instance.cameraPosition({x:0,y:0,z:480},{x:0,y:0,z:0},0);
    instance.width(el.clientWidth).height(el.clientHeight);
    setReady(true);
   })();
@@ -40,11 +53,11 @@ export default function Universe(){
   if(!node)return;
   const x=node.x||0,y=node.y||0,z=node.z||0;
   const distance=Math.hypot(x,y,z)||1;
-  const ratio=1+95/distance;
+  const ratio=1+130/distance;
   g.cameraPosition({x:x*ratio,y:y*ratio,z:z*ratio},{x,y,z},1100);
   g.nodeColor((n:any)=>n.id===c.id?"#ffffff":c.links.includes(n.id)||n.links?.includes(c.id)?colors[n.domain as Domain]:"#334155");
  }
- function reset(){setActive(null);graph.current?.nodeColor((n:any)=>colors[n.domain as Domain]);graph.current?.cameraPosition({x:0,y:0,z:330},{x:0,y:0,z:0},1100)}
+ function reset(){setActive(null);graph.current?.nodeColor((n:any)=>colors[n.domain as Domain]);graph.current?.cameraPosition({x:0,y:0,z:480},{x:0,y:0,z:0},1100)}
  return <div className="shell">
   <div className="starfield" aria-hidden="true"/>
   <header className="topbar"><button className="brand" onClick={reset}><span className="brand-icon">✧</span> Engineering <strong>Universe</strong></button><nav className="eu-home-nav" aria-label="Explore platform"><a href="/explore">Concepts</a><a href="/simulations">Simulations</a><a href="/learn">Learning paths</a></nav><a className="github" href="https://github.com/ksrilal/engineering-universe" target="_blank" rel="noreferrer">GitHub ↗</a></header>
