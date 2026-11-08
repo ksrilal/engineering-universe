@@ -1,8 +1,8 @@
 import {catalogue} from "../../data/catalogue";
 import type {Domain} from "../knowledge/types";
-export type ScenarioStage={title:string;description:string;from:number;to:number;signal:string;metric:number;kind:"message"|"process"|"response"};
-export type ConceptScenario={id:string;title:string;domain:Domain;summary:string;actors:string[];stages:ScenarioStage[];limitations:string};
-type Template={actors:string[];stages:ScenarioStage[];limitations:string};
+export type ScenarioStage={title:string;description:string;from:number;to:number;signal:string;metric:number;kind:"message"|"process"|"response";checks?:string[];fields?:[string,string][];failureReason?:string};
+export type ConceptScenario={id:string;title:string;domain:Domain;summary:string;actors:string[];stages:ScenarioStage[];limitations:string;icons?:string[]};
+type Template={actors:string[];stages:ScenarioStage[];limitations:string;icons?:string[]};
 const templates:Record<Domain,Template>={
 Networking:{actors:["Client","Gateway","Network","Destination"],stages:[
 {title:"Create message",description:"The client prepares data and protocol metadata for communication.",from:0,to:1,signal:"Application data",metric:120,kind:"message"},
@@ -35,5 +35,279 @@ DevOps:{actors:["Developer","CI pipeline","Artifact registry","Runtime platform"
 {title:"Persist outcome",description:"The consumer processes work and may update persistent state.",from:2,to:3,signal:"State update",metric:500,kind:"process"},
 {title:"Acknowledge",description:"The system reports an outcome or acknowledgement according to its delivery semantics.",from:2,to:0,signal:"Ack / result",metric:90,kind:"response"}],limitations:"Generic distributed-system illustration; delivery guarantees, consistency and failure handling depend on the chosen architecture."}
 };
-export const conceptScenarios:ConceptScenario[]=catalogue.map(c=>{const template=templates[c.domain];return{id:c.id,title:c.name,domain:c.domain,summary:c.summary,actors:template.actors,stages:template.stages,limitations:template.limitations}});
+const inspection:Record<Domain,{icons:string[];checks:string[][];fields:[string,string][]}>={
+  "Networking": {
+    "icons": [
+      "💻",
+      "📡",
+      "🌐",
+      "🖥️"
+    ],
+    "checks": [
+      [
+        "Application data is serialized",
+        "Destination address and port selected",
+        "Transport protocol selected"
+      ],
+      [
+        "Destination IP checked against route table",
+        "Next-hop address resolved on local link",
+        "TTL / hop limit considered"
+      ],
+      [
+        "Forwarding decision made per hop",
+        "Policy and interface availability checked",
+        "IP packet forwarded, not decrypted HTTP"
+      ],
+      [
+        "Transport delivers data to receiving application",
+        "Reply may use a different return path",
+        "Delivery is protocol-dependent"
+      ]
+    ],
+    "fields": [
+      [
+        "Payload",
+        "Application bytes"
+      ],
+      [
+        "Destination",
+        "IP address / port"
+      ],
+      [
+        "Header",
+        "IP + transport"
+      ],
+      [
+        "Result",
+        "Application delivery"
+      ]
+    ]
+  },
+  "Security": {
+    "icons": [
+      "👤",
+      "🧩",
+      "🛡️",
+      "🔐"
+    ],
+    "checks": [
+      [
+        "Requested action identified",
+        "Identity context collected"
+      ],
+      [
+        "Credentials or policy inputs validated",
+        "Least-privilege rules evaluated",
+        "Audit event recorded where appropriate"
+      ],
+      [
+        "Allow / deny decision issued",
+        "Decision integrity checked"
+      ],
+      [
+        "Authorization enforced at resource",
+        "Denied requests must not execute"
+      ]
+    ],
+    "fields": [
+      [
+        "Principal",
+        "User / service"
+      ],
+      [
+        "Action",
+        "Requested operation"
+      ],
+      [
+        "Decision",
+        "Allow or deny"
+      ],
+      [
+        "Resource",
+        "Protected endpoint"
+      ]
+    ]
+  },
+  "Software": {
+    "icons": [
+      "👤",
+      "🌐",
+      "⚙️",
+      "🗄️"
+    ],
+    "checks": [
+      [
+        "User input collected",
+        "Client-side validation is advisory"
+      ],
+      [
+        "Server validates inputs",
+        "Authentication / authorization applied",
+        "Request correlation recorded"
+      ],
+      [
+        "Business invariants checked",
+        "Operation executes or rejects"
+      ],
+      [
+        "Query or mutation runs",
+        "Transaction and errors handled"
+      ]
+    ],
+    "fields": [
+      [
+        "Request",
+        "UI event"
+      ],
+      [
+        "Endpoint",
+        "API route"
+      ],
+      [
+        "Operation",
+        "Business command"
+      ],
+      [
+        "Persistence",
+        "Read / write"
+      ]
+    ]
+  },
+  "Cloud": {
+    "icons": [
+      "👤",
+      "🛡️",
+      "☁️",
+      "🗄️"
+    ],
+    "checks": [
+      [
+        "Destination service identified",
+        "Client credentials attached if needed"
+      ],
+      [
+        "Routing and firewall rules evaluated",
+        "TLS termination point identified"
+      ],
+      [
+        "Service identity and access checked",
+        "Compute health and capacity checked"
+      ],
+      [
+        "Storage permissions validated",
+        "Availability and response monitored"
+      ]
+    ],
+    "fields": [
+      [
+        "Client",
+        "Request"
+      ],
+      [
+        "Edge",
+        "Route / policy"
+      ],
+      [
+        "Service",
+        "Compute"
+      ],
+      [
+        "Resource",
+        "Storage"
+      ]
+    ]
+  },
+  "DevOps": {
+    "icons": [
+      "👩‍💻",
+      "🧪",
+      "📦",
+      "🚀"
+    ],
+    "checks": [
+      [
+        "Commit SHA and branch identified",
+        "Change review policy applied"
+      ],
+      [
+        "Dependencies restored",
+        "Tests and security scans run",
+        "Build status checked"
+      ],
+      [
+        "Artifact digest / signature recorded",
+        "Registry access verified"
+      ],
+      [
+        "Deployment health checked",
+        "Rollback criteria evaluated",
+        "Telemetry collected"
+      ]
+    ],
+    "fields": [
+      [
+        "Source",
+        "Git commit"
+      ],
+      [
+        "CI",
+        "Tests / build"
+      ],
+      [
+        "Artifact",
+        "Versioned image"
+      ],
+      [
+        "Runtime",
+        "Release status"
+      ]
+    ]
+  },
+  "Distributed Systems": {
+    "icons": [
+      "👤",
+      "📨",
+      "⚙️",
+      "🗄️"
+    ],
+    "checks": [
+      [
+        "Message ID generated",
+        "Schema validated"
+      ],
+      [
+        "Route or topic selected",
+        "Durability and backpressure checked"
+      ],
+      [
+        "Idempotency key checked",
+        "Handler executes with error policy"
+      ],
+      [
+        "State commit verified",
+        "Ack timing and redelivery policy considered"
+      ]
+    ],
+    "fields": [
+      [
+        "Producer",
+        "Message ID"
+      ],
+      [
+        "Broker",
+        "Queue / topic"
+      ],
+      [
+        "Consumer",
+        "Handler"
+      ],
+      [
+        "Store",
+        "Commit"
+      ]
+    ]
+  }
+};
+export const conceptScenarios:ConceptScenario[]=catalogue.map(c=>{const template=templates[c.domain];const config=inspection[c.domain];return{id:c.id,title:c.name,domain:c.domain,summary:c.summary,actors:template.actors,icons:config.icons,stages:template.stages.map((stage,i)=>({...stage,checks:config.checks[i],fields:[["Signal",stage.signal],["Component",template.actors[stage.to]],["Context",config.fields[i][1]],["State",stage.kind]],failureReason:"The receiving component rejects or cannot complete this stage; inspect its checks and recovery policy."})),limitations:template.limitations}});
 export function getConceptScenario(id:string){return conceptScenarios.find(s=>s.id===id)}
