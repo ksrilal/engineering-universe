@@ -15,7 +15,7 @@ export default function Universe(){
    const {default:ForceGraph3D}=await import("3d-force-graph");
    if(disposed||!mount.current)return;
    const el=mount.current;
-   instance=new ForceGraph3D(el,{controlType:"orbit"});
+   instance=ForceGraph3D({controlType:"orbit"})(el);
    graph.current=instance;
    instance.graphData({nodes:concepts.map(c=>({...c})),links:edges.map(e=>({...e}))})
     .backgroundColor("#070d1b").nodeColor((n:any)=>colors[n.domain as Domain])
