@@ -17,34 +17,72 @@ export default function Universe(){
    const el=mount.current;
    instance=new ForceGraph3D(el,{controlType:"orbit"});
    graph.current=instance;
-   // Give every node a distinct starting position so the first rendered frame
-   // does not appear as one giant overlapping sphere.
+   const THREE=await import("three");
+   // Stable, spread-out 3D constellation. Fixed coordinates prevent the
+   // force solver from collapsing the graph into an unreadable cluster.
+   const count=concepts.length;
    const nodes=concepts.map((c,i)=>{
-    const y=1-2*(i+0.5)/concepts.length;
-    const radius=Math.sqrt(1-y*y);
-    const angle=i*Math.PI*(3-Math.sqrt(5));
-    return {...c,x:115*radius*Math.cos(angle),y:115*y,z:115*radius*Math.sin(angle)};
+    const angle=i*2.399963229728653;
+    const radius=32+Math.sqrt((i+0.5)/count)*145;
+    const x=Math.cos(angle)*radius;
+    const y=Math.sin(angle)*radius*0.78;
+    const z=30*Math.sin(i*1.73);
+    return {...c,x,y,z,fx:x,fy:y,fz:z};
    });
-   instance.graphData({nodes,links:edges.map(e=>({...e}))})
+   const labelTextures:InstanceType<typeof THREE.CanvasTexture>[]=[];
+   function createNode(n:any){
+    const group=new THREE.Group();
+    const material=new THREE.MeshBasicMaterial({color:colors[n.domain as Domain]});
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(2.6,14,10),material);
+    group.add(dot);
+    const canvas=document.createElement("canvas");
+    const ctx=canvas.getContext("2d");
+    if(ctx){
+     const name=String(n.name);
+     const words=name.split(" ");
+     const lines:string[]=[];let line="";
+     for(const word of words){
+      if((line+" "+word).trim().length>20&&line){lines.push(line);line=word}
+      else line=(line+" "+word).trim();
+     }
+     if(line)lines.push(line);
+     canvas.width=512;canvas.height=128;
+     ctx.clearRect(0,0,512,128);
+     ctx.textAlign="center";ctx.textBaseline="middle";
+     ctx.font="500 24px Arial, sans-serif";
+     ctx.fillStyle="#d7e5f7";
+     lines.slice(0,3).forEach((text,i)=>ctx.fillText(text,256,24+i*30,490));
+     const texture=new THREE.CanvasTexture(canvas);
+     labelTextures.push(texture);
+     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
+     sprite.scale.set(48,12,1);
+     sprite.position.set(0,-11,0);
+     group.add(sprite);
+    }
+    return group;
+   }
+   instance
     .backgroundColor("#070d1b")
-    .nodeRelSize(3)
-    .nodeResolution(10)
-    .nodeColor((n:any)=>colors[n.domain as Domain])
-    .nodeVal((n:any)=>n.id==="https"?1.8:1)
+    .graphData({nodes,links:edges.map(e=>({...e}))})
+    .nodeThreeObject(createNode)
+    .nodeThreeObjectExtend(false)
     .nodeLabel((n:any)=>n.name)
-    .linkColor(()=>"rgba(107,142,194,0.22)")
-    .linkOpacity(0.42).linkWidth(0.6)
-    .warmupTicks(80).cooldownTicks(250)
-    .onEngineStop(()=>{if(!disposed&&!graph.current?.__fitted){graph.current.__fitted=true;instance.zoomToFit(850,85)}})
+    .linkColor(()=>"rgba(133,165,208,0.48)")
+    .linkOpacity(0.55)
+    .linkWidth(0.45)
+    .cooldownTicks(0)
+    .enableNodeDrag(false)
     .onNodeClick((n:any)=>focus(n as Concept,instance))
     .showNavInfo(false);
-   instance.cameraPosition({x:0,y:0,z:480},{x:0,y:0,z:0},0);
    instance.width(el.clientWidth).height(el.clientHeight);
+   instance.cameraPosition({x:0,y:0,z:420},{x:0,y:0,z:0},0);
+   instance.controls().enableDamping=true;
+   graph.current.__labelTextures=labelTextures;
    setReady(true);
   })();
   const resize=()=>{if(mount.current&&graph.current){graph.current.width(mount.current.clientWidth);graph.current.height(mount.current.clientHeight)}};
   window.addEventListener("resize",resize);
-  return ()=>{disposed=true;window.removeEventListener("resize",resize);if(instance){instance._destructor?.();graph.current=null}};
+  return ()=>{disposed=true;window.removeEventListener("resize",resize);if(instance){(graph.current?.__labelTextures||[]).forEach((t:any)=>t.dispose());instance._destructor?.();graph.current=null}};
  },[]);
  function focus(c:Concept,g=graph.current){
   setActive(c);setQuery("");
@@ -52,12 +90,9 @@ export default function Universe(){
   const node=g.graphData().nodes.find((n:any)=>n.id===c.id);
   if(!node)return;
   const x=node.x||0,y=node.y||0,z=node.z||0;
-  const distance=Math.hypot(x,y,z)||1;
-  const ratio=1+130/distance;
-  g.cameraPosition({x:x*ratio,y:y*ratio,z:z*ratio},{x,y,z},1100);
-  g.nodeColor((n:any)=>n.id===c.id?"#ffffff":c.links.includes(n.id)||n.links?.includes(c.id)?colors[n.domain as Domain]:"#334155");
+  g.cameraPosition({x:x,y:y,z:z+95},{x,y,z},900);
  }
- function reset(){setActive(null);graph.current?.nodeColor((n:any)=>colors[n.domain as Domain]);graph.current?.cameraPosition({x:0,y:0,z:480},{x:0,y:0,z:0},1100)}
+ function reset(){setActive(null);graph.current?.cameraPosition({x:0,y:0,z:420},{x:0,y:0,z:0},1100)}
  return <div className="shell">
   <div className="starfield" aria-hidden="true"/>
   <header className="topbar"><button className="brand" onClick={reset}><span className="brand-icon">✧</span> Engineering <strong>Universe</strong></button><nav className="eu-home-nav" aria-label="Explore platform"><a href="/explore">Concepts</a><a href="/simulations">Simulations</a><a href="/learn">Learning paths</a></nav><a className="github" href="https://github.com/ksrilal/engineering-universe" target="_blank" rel="noreferrer">GitHub ↗</a></header>
