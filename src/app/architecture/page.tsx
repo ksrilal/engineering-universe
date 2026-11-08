@@ -1,0 +1,3 @@
+import {Panel} from "../../components/ui/Panel";
+export const metadata={title:"Architecture | Engineering Universe"};
+export default function ArchitecturePage(){return <main className="eu-page"><a href="/">← Back to Universe</a><h1>Platform architecture</h1><Panel title="Shared foundations"><p>Knowledge graph service, typed relationships, deterministic simulation engine and reusable UI components.</p></Panel><Panel title="Delivery strategy"><p>Build domain features on top of shared foundations. Content and simulation definitions remain independent of visualization.</p></Panel><a href="/simulations">Explore the first simulation →</a></main>}
