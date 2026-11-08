@@ -1,0 +1,41 @@
+export type Domain = "Networking" | "Security" | "DevOps" | "Software" | "Cloud" | "Distributed Systems";
+export type Concept = { id:string; name:string; domain:Domain; description:string; links:string[] };
+export const colors:Record<Domain,string> = { Networking:"#38bdf8", Security:"#c084fc", DevOps:"#34d399", Software:"#fbbf24", Cloud:"#fb7185", "Distributed Systems":"#a5b4fc" };
+export const concepts:Concept[] = [
+{id:"internet",name:"Internet",domain:"Networking",description:"A global network of interconnected networks.",links:["ip","dns","http","routing"]},
+{id:"ip",name:"IP",domain:"Networking",description:"Addressing and forwarding packets between networks.",links:["routing","subnet","tcp","udp"]},
+{id:"dns",name:"DNS",domain:"Networking",description:"Translates domain names into DNS records such as IP addresses.",links:["internet","http","https"]},
+{id:"routing",name:"Routing",domain:"Networking",description:"Selects paths for forwarding packets across networks.",links:["subnet","vpc","ip"]},
+{id:"subnet",name:"Subnetting",domain:"Networking",description:"Divides IP address space into network prefixes.",links:["vpc","lan","routing"]},
+{id:"lan",name:"LAN",domain:"Networking",description:"A local area network connecting devices in a limited area.",links:["subnet","vlan"]},
+{id:"vlan",name:"VLAN",domain:"Networking",description:"Logical segmentation of layer-two networks.",links:["lan","subnet"]},
+{id:"tcp",name:"TCP",domain:"Networking",description:"Reliable ordered byte-stream transport with congestion control.",links:["http","https","tls","ip"]},
+{id:"udp",name:"UDP",domain:"Networking",description:"Connectionless datagram transport with low protocol overhead.",links:["quic","ip","webrtc"]},
+{id:"quic",name:"QUIC",domain:"Networking",description:"Encrypted multiplexed transport commonly used by HTTP/3.",links:["udp","http3","tls"]},
+{id:"http",name:"HTTP",domain:"Networking",description:"Application protocol for exchanging requests and responses.",links:["https","rest","http3"]},
+{id:"http3",name:"HTTP/3",domain:"Networking",description:"HTTP semantics carried over QUIC.",links:["quic","https"]},
+{id:"https",name:"HTTPS",domain:"Security",description:"HTTP secured using TLS, over TCP or QUIC depending on HTTP version.",links:["tls","http","certificates","dns"]},
+{id:"tls",name:"TLS",domain:"Security",description:"Authenticates peers and protects communication with encryption.",links:["certificates","https","tcp","quic"]},
+{id:"certificates",name:"Certificates",domain:"Security",description:"Public-key certificates bind identities to cryptographic keys.",links:["tls","pki"]},
+{id:"pki",name:"PKI",domain:"Security",description:"Infrastructure for issuing and validating digital certificates.",links:["certificates"]},
+{id:"oauth",name:"OAuth 2.0",domain:"Security",description:"Delegated authorization framework for accessing protected resources.",links:["oidc","jwt","api"]},
+{id:"oidc",name:"OpenID Connect",domain:"Security",description:"Identity layer built on OAuth 2.0 for authentication.",links:["oauth","jwt"]},
+{id:"jwt",name:"JWT",domain:"Security",description:"Compact claims representation that can be signed or encrypted.",links:["oauth","oidc","api"]},
+{id:"rbac",name:"RBAC",domain:"Security",description:"Authorizes operations based on assigned roles.",links:["api","oauth"]},
+{id:"rest",name:"REST",domain:"Software",description:"Architectural style for resource-oriented distributed systems.",links:["http","api","soap"]},
+{id:"soap",name:"SOAP",domain:"Software",description:"XML-based messaging protocol for exchanging structured information.",links:["rest","api"]},
+{id:"api",name:"API",domain:"Software",description:"An interface exposing functionality to other software.",links:["rest","soap","oauth","microservices"]},
+{id:"websocket",name:"WebSocket",domain:"Software",description:"Persistent bidirectional communication over a WebSocket connection.",links:["http","api"]},
+{id:"database",name:"Database",domain:"Software",description:"Persistent storage and querying of application data.",links:["cache","microservices"]},
+{id:"cache",name:"Caching",domain:"Distributed Systems",description:"Stores reusable data closer to consumers to reduce latency and load.",links:["cdn","database","api"]},
+{id:"cdn",name:"CDN",domain:"Distributed Systems",description:"Distributed edge infrastructure delivering content near users.",links:["https","cache","streaming"]},
+{id:"streaming",name:"Video Streaming",domain:"Distributed Systems",description:"Adaptive media delivery using manifests, segments and buffering.",links:["cdn","http","https"]},
+{id:"microservices",name:"Microservices",domain:"Distributed Systems",description:"Applications split into independently deployable services.",links:["api","kubernetes","queue"]},
+{id:"queue",name:"Message Queues",domain:"Distributed Systems",description:"Asynchronous communication between producers and consumers.",links:["microservices","kubernetes"]},
+{id:"docker",name:"Docker",domain:"DevOps",description:"Tools for building and running containerized applications.",links:["kubernetes","cicd"]},
+{id:"kubernetes",name:"Kubernetes",domain:"DevOps",description:"Orchestrates containerized workloads and services.",links:["docker","cicd","loadbalancer","vpc"]},
+{id:"cicd",name:"CI/CD",domain:"DevOps",description:"Automated build, test and deployment pipelines.",links:["docker","kubernetes"]},
+{id:"vpc",name:"VPC / VNet",domain:"Cloud",description:"Logically isolated virtual networking in a cloud environment.",links:["subnet","routing","kubernetes","loadbalancer"]},
+{id:"loadbalancer",name:"Load Balancer",domain:"Cloud",description:"Distributes traffic among backend endpoints.",links:["https","kubernetes","vpc"]}
+];
+export const edges = Array.from(new Map(concepts.flatMap(c=>c.links.map(target=>{const key=[c.id,target].sort().join("|");return [key,{source:c.id,target}] as const}))).values());
